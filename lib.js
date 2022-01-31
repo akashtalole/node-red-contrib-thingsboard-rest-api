@@ -19,6 +19,8 @@ var ThingsboardRestApi = (function(){
         if(this.domain.length === 0) {
             throw new Error('Domain parameter must be specified as a string.');
         }
+            this.token = (typeof options === 'object') ? (options.token ? options.token : {}) : {};
+            this.apiKey = (typeof options === 'object') ? (options.apiKey ? options.apiKey : {}) : {};
     }
 
     function mergeQueryParams(parameters, queryParameters) {
@@ -53,6 +55,8 @@ var ThingsboardRestApi = (function(){
             headers: headers,
             body: body
         };
+        console.log("method: "+method)
+        console.log("headers: "+headers)
         if(Object.keys(form).length > 0) {
             if (req.headers['Content-Type'] && req.headers['Content-Type'][0] === 'multipart/form-data') {
                 delete req.body;
@@ -92,17 +96,61 @@ var ThingsboardRestApi = (function(){
         });
     };
 
+           /**
+            * Set Token
+            * @method
+            * @name SwaggerPetstore#setToken
+            * @param {string} value - token's value
+            * @param {string} headerOrQueryName - the header or query name to send the token at
+            * @param {boolean} isQuery - true if send the token as query param, otherwise, send as header param
+            */
+            ThingsboardRestApi.prototype.setToken = function (value, headerOrQueryName, isQuery) {
+                this.token.value = value;
+                this.token.headerOrQueryName = headerOrQueryName;
+                this.token.isQuery = isQuery;
+                console.log("IN:setToken:: "+value)
+            };
+            /**
+            * Set Api Key
+            * @method
+            * @name SwaggerPetstore#setApiKey
+            * @param {string} value - apiKey's value
+            * @param {string} headerOrQueryName - the header or query name to send the apiKey at
+            * @param {boolean} isQuery - true if send the apiKey as query param, otherwise, send as header param
+            */
+            ThingsboardRestApi.prototype.setApiKey = function (value, headerOrQueryName, isQuery) {
+                console.log("IN:setApiKey:: "+value)
+                this.apiKey.value = value;
+                this.apiKey.headerOrQueryName = headerOrQueryName;
+                this.apiKey.isQuery = isQuery;
+            };
         /**
         * Set Auth headers
         * @method
         * @name ThingsboardRestApi#setAuthHeaders
         * @param {object} headerParams - headers object
         */
+
+        
         ThingsboardRestApi.prototype.setAuthHeaders = function (headerParams) {
+            console.log("IN:lib:setAuthHeaders")
             var headers = headerParams ? headerParams : {};
+            if (!this.token.isQuery) {
+                if (this.token.headerOrQueryName) {
+                    headers[this.token.headerOrQueryName] = this.token.value;
+                } else if (this.token.value) {
+                    console.log("IN:lib:setAuthHeaders:token")
+                    headers['Authorization'] = 'Bearer ' + this.token.value;
+                }
+            }
+            if (!this.apiKey.isQuery && this.apiKey.headerOrQueryName) {
+                console.log("IN:lib:setAuthHeaders:apikey")
+                //headers[this.apiKey.headerOrQueryName] = this.apiKey.value;
+                headers['Authorization'] = 'Bearer ' + this.apiKey.value;
+            }
             return headers;
         };
-
+        
 /**
  * Get the Security Settings object that contains password policy, etc.
 

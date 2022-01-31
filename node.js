@@ -1419,8 +1419,32 @@ module.exports = function (RED) {
         var node = this;
 
         node.on('input', function (msg) {
+            console.log("HERE:1422 input")
+            console.log("this.service: "+this.service)
+            console.log("this.service.credentials: "+this.service.credentials)
+            console.log("this.service.credentials.secureTokenValue: "+this.service.credentials.secureTokenValue)
             var errorFlag = false;
             var client = new lib.ThingsboardRestApi();
+                if (!errorFlag && this.service && this.service.credentials && this.service.credentials.secureTokenValue) {
+                console.log("HERE:setToken::1426 input"+this.service.credentials.secureTokenValue)
+                if (this.service.secureTokenIsQuery) {
+                    client.setToken(this.service.credentials.secureTokenValue,
+                                    this.service.secureTokenHeaderOrQueryName, true);
+                } else {
+                    client.setToken(this.service.credentials.secureTokenValue,
+                                    this.service.secureTokenHeaderOrQueryName, false);
+                }
+            }
+            if (!errorFlag && this.service && this.service.credentials && this.service.credentials.secureApiKeyValue) {
+                console.log("HERE:setApiKey::1439 "+this.service.credentials.secureApiKeyValue)
+                if (this.service.secureApiKeyIsQuery) {
+                    client.setApiKey(this.service.credentials.secureApiKeyValue,
+                                     this.service.secureApiKeyHeaderOrQueryName, true);
+                } else {
+                    client.setApiKey(this.service.credentials.secureApiKeyValue,
+                                     this.service.secureApiKeyHeaderOrQueryName, false);
+                }
+            }
             if (!errorFlag) {
                 client.body = msg.payload;
             }
@@ -9447,10 +9471,19 @@ module.exports = function (RED) {
     function ThingsboardRestApiServiceNode(n) {
         RED.nodes.createNode(this, n);
 
+        this.secureTokenValue = n.secureTokenValue;
+        this.secureTokenHeaderOrQueryName = n.secureTokenHeaderOrQueryName;
+        this.secureTokenIsQuery = n.secureTokenIsQuery;
+        this.secureApiKeyValue = n.secureApiKeyValue;
+        this.secureApiKeyHeaderOrQueryName = n.secureApiKeyHeaderOrQueryName;
+        this.secureApiKeyIsQuery = n.secureApiKeyIsQuery;
+
     }
 
     RED.nodes.registerType('thingsboard-rest-api-service', ThingsboardRestApiServiceNode, {
         credentials: {
+            secureTokenValue: { type: 'password' },
+            secureApiKeyValue: { type: 'password' },
             temp: { type: 'text' }
         }
     });
